@@ -11,14 +11,19 @@
 
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-
     <!-- Latest compiled and minified CSS -->
-    <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.min.css">
+    <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
     <!-- Optional theme -->
-    <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap-theme.min.css">
-    <link rel="stylesheet" href="/css/main.css">
+
+    <link rel="stylesheet" href="/libs/bootstrap/css/bootstrap-theme.min.css" integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+        crossorigin="anonymous">
+    <!-- Latest compiled and minified JavaScript -->
 
     <script src="/libs/jquery/jquery-3.3.1.min.js"></script>
+    <script src="/libs/bootstrap/js/bootstrap.min.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="/css/main.css">
     <script>
         $.ajaxSetup({
             headers: {
@@ -42,12 +47,25 @@
                 </ul>
                 <!-- Collect the nav links, forms, and other content for toggling -->
                 <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-                    <form class="navbar-form navbar-left" method="POST" action="">
-                        <div class="form-group">
-                            <input type="text" class="form-control" placeholder="Search">
+                    <div class="search-input">
+                        <form class="navbar-form navbar-left" id="search-form" method="POST">
+                            <div class="form-group">
+                                <input type="text" class="form-control" placeholder="Search" name="search" id="search-input" data-search-url="{{ route('search') }}"
+                                    autocomplete="off">
+                            </div>
+                        </form>
+                        <div class="search-block-wrapper">
+                            <ul class="list-group search-list">
+                            </ul>
                         </div>
-                        <button type="submit" class="btn btn-default">Search</button>
-                    </form>
+                    </div>
+
+                    @guest
+                    <ul class="nav navbar-nav">
+                        <li><a href="{{ route('favorite.index') }}">Favorite</a></li>
+                        <li><a href="{{ route('comparison.index') }}">Comparison Page</a></li>
+                    </ul>
+                    @endGuest
                     <ul class="nav navbar-nav navbar-right">
                         @guest
                         <li><a href="{{ route('login') }}">Sign in</a></li>
@@ -55,6 +73,7 @@
                         <li class="dropdown">
                             <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-haspopup="true" aria-expanded="false">{{ Auth::user()->name }} <span class="caret"></span></a>
                             <ul class="dropdown-menu">
+                                <li><a href="{{ route('dashboard') }}">My account</a></li>
                                 <li><a href="{{ route('favorite.index') }}">Favourite</a></li>
                                 <li><a href="{{ route('comparison.index') }}">Comparison page</a></li>
 
@@ -62,7 +81,7 @@
                                 <li role="separator" class="divider"></li>
 
                                 <li><a href="{{ route('admin.users') }}">Users</a></li>
-                                <li><a href="{{ route('categories.index') }}">Categories</a></li>
+                                <li><a href="{{ route('admin.categories') }}">Categories</a></li>
                                 <li><a href="{{ route('admin.products') }}">Products</a></li>
                                 @endif
 
@@ -79,12 +98,12 @@
 
             <!-- /.container-fluid -->
         </nav>
-
-        @yield('content')
+        @if(session()->has('alertMessage'))
+        <div class="alert alert-danger">{{ session('alertMessage') }}</div>
+        @endif @yield('content')
     </div>
 
     <!-- Latest compiled and minified JavaScript -->
-    <script src="/libs/bootstrap/js/bootstrap.min.js"></script>
     <script src="/js/main.js"></script>
 </body>
 

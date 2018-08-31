@@ -4,6 +4,8 @@ namespace App;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
 
 class Products extends Model
 {
@@ -46,11 +48,16 @@ class Products extends Model
      */
     public function isFavorite()
     {
-        $userId = auth()->user()->id;
-        $favorite = Favorites::where('product_id', $this->id)
-            ->where('user_id', $userId)
-            ->exists();
-        return $favorite;
+        if (Auth::guest()) {
+            $cookie = Cookie::get('favorite');
+            $result = ($cookie) ? in_array($this->id, unserialize($cookie)) : false;
+        } else {
+            $userId = auth()->user()->id;
+            $result = Favorites::where('product_id', $this->id)
+                ->where('user_id', $userId)
+                ->exists();
+        }
+        return $result;
     }
 
     /**
@@ -60,11 +67,17 @@ class Products extends Model
      */
     public function isCompared()
     {
-        $userId = auth()->user()->id;
-        $compare = Comparison::where('product_id', $this->id)
-            ->where('user_id', $userId)
-            ->exists();
-        return $compare;
+        if (Auth::guest()) {
+            $cookie = Cookie::get('comparison');
+
+            $result = ($cookie) ? in_array($this->id, unserialize($cookie)) : false;
+        } else {
+            $userId = auth()->user()->id;
+            $result = Comparison::where('product_id', $this->id)
+                ->where('user_id', $userId)
+                ->exists();
+        }
+        return $result;
     }
 
     public function scopeByPopularity($query)
@@ -86,7 +99,7 @@ class Products extends Model
 
     public function properties()
     {
-        return ProductProperty::where('product_id', $this->id)->get();
+        return $this->hasMany(ProductProperty::class, 'product_id')->getResults();
     }
 
     public function media()
@@ -95,6 +108,10 @@ class Products extends Model
             ->leftJoin('product_media', 'media.id', '=', 'product_media.media_id')
             ->where('product_id', $this->id)
             ->get();
+    }
+    public function isInSearch($propertyName)
+    {
+        return SearchFields::where('product_id', $this->id)->where('field', $propertyName)->exists();
     }
 
     public function mainImage()
@@ -111,5 +128,18 @@ class Products extends Model
     public function favoriteCount()
     {
         return Favorites::where('product_id', $this->id)->count();
+    }
+    public function scopeFindByIds($query, $ids)
+    {
+        $products = [];
+        foreach ($ids as $id) {
+            $product = $this->find($id);
+            $products[] = $product;
+        }
+        return $products;
+    }
+    public function getPropertyValue(string $property)
+    {
+        return ProductProperty::where('name', $property)->where('product_id', $this->id)->first()->value;
     }
 }

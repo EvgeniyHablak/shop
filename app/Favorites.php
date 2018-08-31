@@ -35,4 +35,8 @@ class Favorites extends Model
     {
         return $query->where('user_id', $userId);
     }
+    public function product()
+    {
+        return Products::find($this->product_id);
+    }
 }

@@ -15,7 +15,7 @@ class MainController extends Controller
     public function index()
     {
         $categories = Categories::all();
-        $title = 'Test';
+        $title = 'Main Page';
         return view('main', ['categories' => $categories, 'title' => $title]);
     }
 }

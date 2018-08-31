@@ -8,7 +8,7 @@
         <td>Name</td>
         <td>Price</td>
         <td>Category</td>
-        <td>EDIT</td>
+        <td>Actions</td>
     </tr>
     @foreach($products as $product)
     <tr>
@@ -17,12 +17,14 @@
         <td>${{ $product->price }}</td>
         <td>{{ $product->category()->title }}</td>
         <td>
-            <a href="{{ route('admin.products.edit', ['productId'=> $product->id]) }}" class="btn">
+            <a class="btn btn-primary" href="{{ route('admin.products.edit', ['productId'=> $product->id]) }}">
                 edit
             </a>
-            <a href="{{ route('admin.products.delete', ['productId'=> $product->id]) }}" class="btn">
-                delete
-            </a>
+            <form class="remove-product" action="{{ route('products.destroy', ['productId'=> $product->id]) }}" method="POST">
+                <input type="hidden" name="_method" value="delete">
+                <input type="submit" class="btn btn-default" value="delete"> {{ csrf_field() }}
+            </form>
+
         </td>
 
     </tr>

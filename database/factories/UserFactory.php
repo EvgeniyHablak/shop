@@ -5,6 +5,7 @@ use App\Products;
 use App\ProductProperty;
 use App\Media;
 use App\ProductMedia;
+use App\CategoryProperty;
 
 /*
 |--------------------------------------------------------------------------
@@ -39,11 +40,11 @@ $factory->define(Products::class, function (Faker $faker) {
 });
 
 $factory->define(ProductProperty::class, function (Faker $faker) {
-    $name = $faker->word;
+    $category = CategoryProperty::all()->random(1)->first();
     return [
         'product_id' => rand(1, 50),
-        'name' => $name,
-        'title' => ucfirst($name),
+        'name' => $category->name,
+        'title' => $category->title,
         'value' => $faker->sentence,
         'created_at' => $faker->time('Y-m-d H:i:s')
     ];
@@ -51,14 +52,14 @@ $factory->define(ProductProperty::class, function (Faker $faker) {
 
 $factory->define(Media::class, function (Faker $faker) {
     return [
-       'path' => $faker->imageUrl()
+        'path' => $faker->imageUrl()
     ];
 });
 
 $factory->define(ProductMedia::class, function (Faker $faker) {
     return [
-            'product_id' => rand(1, 50),
-            'media_id' => $faker->unique()->numberBetween(1, 200),
-            'type' => 'simple'
-        ];
+        'product_id' => rand(1, 50),
+        'media_id' => $faker->unique()->numberBetween(1, 200),
+        'type' => 'simple'
+    ];
 });

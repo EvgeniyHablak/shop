@@ -5,6 +5,10 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Products;
 use App\Favorites;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Cookie;
+use App\User;
+use App\Http\Middleware\CheckPermissions;
 
 class FavoriteController extends Controller
 {
@@ -15,11 +19,35 @@ class FavoriteController extends Controller
      */
     public function index()
     {
-        // showing favorites of user
-        // $favorities = Favorites::whereUser()->all();
+        $title = 'Favorites';
+        if (Auth::guest()) {
+            if (Cookie::has('favorite')) {
+                $cookie = Cookie::get('favorite');
+                $productsId = unserialize($cookie);
+                $favoritesProducts = Products::findByIds($productsId);
+            } else {
+                $favoritesProducts = [];
+            }
+        } else {
+            if (Cookie::has('favorite')) {
+                $cookie = Cookie::get('favorite');
+                $productsId = unserialize($cookie);
+                $favoritesProducts = Products::findByIds($productsId);
+                foreach ($favoritesProducts as $product) {
+                    $favorite = new Favorites([
+                        'product_id' => $product->id,
+                        'user_id' => auth()->user()->id
+                    ]);
+                    $favorite->saveOrFail();
+                }
+                Cookie::forget('favorite');
+                setcookie('favorite', '', 0);
+            }
+            $favoritesProducts = auth()->user()->getFavoriteProducts();
+        }
 
-        // return view('favorities', ['favorities']);
-        dd('index');
+        return view('favorite.favorites', ['favorites' => $favoritesProducts, 'title' => $title]);
+
     }
 
     /**
@@ -29,30 +57,60 @@ class FavoriteController extends Controller
      */
     public function create($productId)
     {
-        $user = auth()->user();
         $product = Products::find($productId);
-        $existed = Favorites::where('user_id', $user->id)
-            ->where('product_id', $productId)
-            ->get();
-        if (!count($existed)) {
-            $favorite = new Favorites([
-                'product_id' => $productId,
-                'user_id' => $user->id
-            ]);
-            $favorite->saveOrFail();
+        if (Auth::guest()) {
+            if (Cookie::has('favorite')) {
+                $cookie = Cookie::get('favorite');
+                $productsId = unserialize($cookie);
+                array_push($productsId, $productId);
+            } else {
+                $productsId = [$productId];
+            }
+            $cookie = cookie('favorite', serialize($productsId), 6000);
+            return redirect()->back()->withCookie($cookie);
+        } else {
+            $user = auth()->user();
+            $existed = Favorites::where('user_id', $user->id)
+                ->where('product_id', $productId)
+                ->get();
+            if (!count($existed)) {
+                $favorite = new Favorites([
+                    'product_id' => $productId,
+                    'user_id' => $user->id
+                ]);
+                $favorite->saveOrFail();
+            }
         }
         return redirect()->back();
     }
 
     public function delete($productId)
     {
-        $user = auth()->user();
-        $favorite = Favorites::where('user_id', $user->id)
-            ->where('product_id', $productId)->first();
-        $favorite->delete();
-        return redirect()->back();
+        if (Auth::guest()) {
+            $cookie = Cookie::get('favorite');
+            $cookieArray = unserialize($cookie);
+            $key = array_search($productId, $cookieArray);
+            if ($key !== false) {
+                unset($cookieArray[$key]);
+            }
+            $cookie = cookie('favorite', serialize($cookieArray), 6000);
+            return redirect()->back()->withCookie($cookie);
+        } else {
+            $user = auth()->user();
+            $favorite = Favorites::where('user_id', $user->id)
+                ->where('product_id', $productId)->first();
+            $favorite->delete();
+            return redirect()->back();
+        }
     }
-
+    public function adminDestroy(Request $request, $userId, $productId)
+    {
+        $this->middleware(CheckPermissions::class);
+        $user = User::find($userId);
+        $favorite = Favorites::where('user_id', $user->id)
+            ->where('product_id', $productId)->delete();
+        return redirect(route('users.show', ['user' => $user->id]));
+    }
     /**
      * Store a newly created resource in storage.
      *
@@ -61,7 +119,7 @@ class FavoriteController extends Controller
      */
     public function store(Request $request)
     {
-        //  adding product to favorite 
+        //  adding product to favorite
     }
 
     /**

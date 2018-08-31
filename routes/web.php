@@ -14,10 +14,11 @@ Route::get('/', 'MainController@index')->name('index');
 Route::resources(
     [
         '/categories' => 'CategoriesController',
-        '/products' => 'ProductsController'
+        '/products' => 'ProductsController',
+        '/users' => 'UserController'
     ]
 );
-Route::get('/categories/{categoryId}/delete', 'CategoriesController@delete')->name('categories.delete');
+// Route::get('/categories/{categoryId}/delete', 'CategoriesController@delete')->name('categories.delete');
 Route::post('/categories/properties', 'CategoriesController@getProperties')->name('categories.properties');
 
 //MEDIA
@@ -31,14 +32,19 @@ Route::get('favorite/{productId}/delete', 'FavoriteController@delete')->name('fa
 
 //COMPARISON
 Route::get('/comparison', 'ComparisonController@index')->name('comparison.index');
+Route::get('/comparison/{category}', 'ComparisonController@category')->name('comparison.category');
 Route::get('comparison/{productId}/create', 'ComparisonController@create')->name('comparison.create');
 Route::get('comparison/{productId}/delete', 'ComparisonController@delete')->name('comparison.delete');
 
 //ADMIN
-Route::get('/admin/users', 'UsersController@index')->name('admin.users');
+Route::get('/admin/users', 'UserController@index')->name('admin.users');
+Route::delete('/admin/users/{userId}/favorite/{productId}', 'FavoriteController@adminFavoritesDestroy')->name('admin.favorites.remove');
 Route::get('/admin/products', 'ProductsController@index')->name('admin.products');
 Route::get('/admin/products/{productId}/edit', 'ProductsController@edit')->name('admin.products.edit');
-Route::get('/admin/products/{productId}/delete', 'ProductsController@delete')->name('admin.products.delete');
+
+Route::get('/admin/categories', 'CategoriesController@adminCategories')->name('admin.categories');
+// Route::get('/admin/products/{productId}/delete', 'ProductsController@delete')->name('admin.products.delete');
+
 
 // Authentication Routes...
 Route::get('login', 'Auth\LoginController@showLoginForm')->name('login');
@@ -48,3 +54,9 @@ Route::get('logout', 'Auth\LoginController@logout')->name('logout');
 // Registration Routes...
 Route::get('register', 'Auth\RegisterController@showRegistrationForm');
 Route::post('register', 'Auth\RegisterController@register')->name('register');
+
+//Dashbord
+Route::get('dashboard', 'UserController@dashboard')->name('dashboard');
+
+//Search
+Route::post('search', 'SearchController@index')->name('search');

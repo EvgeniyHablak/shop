@@ -9,9 +9,8 @@
                 <p>Name: {{ $user->name }}</p>
                 <p>Email: {{ $user->email }}</p>
                 <p>Registered at: {{ $user->created_at }}</p>
-                <button class="btn btn-default pull-right">User favorites</button>
-                <button class="btn btn-default pull-right">Edit</button>
-                <button class="btn btn-default pull-right">View</button>
+                <a href="{{ route('users.show', ['user' => $user->id]) }}" class="btn btn-default pull-right">User favorites</a>
+                <a href="{{ route('users.edit', ['user' => $user->id]) }}" class="btn btn-default pull-right">Edit</a>
             </li>
             @endforeach
         </ul>

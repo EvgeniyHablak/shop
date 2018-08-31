@@ -12,6 +12,11 @@ class Comparison extends Model
      * @var string
      */
     protected $table = 'comparison';
+    /**
+     * Undocumented variable
+     *
+     * @var array
+     */
     protected $fillable = [
         'product_id',
         'user_id'

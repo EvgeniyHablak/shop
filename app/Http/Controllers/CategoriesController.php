@@ -22,6 +22,12 @@ class CategoriesController extends Controller
         return view('main', ['categories' => $categories, 'title' => $title]);
 
     }
+    public function adminCategories()
+    {
+        $categories = Categories::all();
+        $title = 'Admin Categories';
+        return view('admin.categories', ['categories' => $categories, 'title' => $title]);
+    }
 
     /**
      * Show the form for creating a new resource.
@@ -60,7 +66,7 @@ class CategoriesController extends Controller
             ]);
             $categoryProp->save();
         }
-        return redirect(route('categories.index'));
+        return redirect(route('admin.categories'));
     }
 
     /**
@@ -72,7 +78,7 @@ class CategoriesController extends Controller
     public function show(Request $request, $name)
     {
         $category = Categories::whereName($name)->firstOrFail();
-        $products = Products::whereCategory($category->id);
+        $products = Products::whereCategory($category->id)->where('deleted_at', null);
         if ($request->has('sort')) {
             if ($request->get('sort') === 'alpha') {
                 $products = $products->orderBy('title', 'asc')->get();
@@ -99,10 +105,11 @@ class CategoriesController extends Controller
      */
     public function edit($id)
     {
+        $this->middleware(CheckPermissions::class);
         $category = Categories::find($id);
         $categoryProperties = CategoryProperty::whereCategory($id)->get();
 
-        return view('category.categoryInfo', [
+        return view('admin.categoryEditForm', [
             'title' => 'Edit category',
             'category' => $category,
             'properties' => $categoryProperties
@@ -116,9 +123,27 @@ class CategoriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $categoryId)
     {
-        dd('update');
+        $this->middleware(CheckPermissions::class);
+
+        $category = Categories::find($categoryId);
+        $category->title = htmlspecialchars($request->post('title'));
+        $category->name = htmlspecialchars($request->post('name'));
+        $category->save();
+
+        $category->propertiesRemove();
+        for ($i = 0; $i < count($request->post('propertyName')); $i++) {
+            $propName = htmlspecialchars($request->post('propertyName')[$i]);
+            $propTitle = htmlspecialchars($request->post('propertyTitle')[$i]);
+            $categoryProp = new CategoryProperty([
+                'name' => $propName,
+                'title' => $propTitle,
+                'category_id' => $category->id
+            ]);
+            $categoryProp->save();
+        }
+        return redirect(route('admin.categories'));
     }
 
     /**
@@ -127,15 +152,12 @@ class CategoriesController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    // public function destroy($id)
-    // {
-    //     dd('delete');
-    // }
-    public function delete($categoryId)
+    public function destroy($categoryId)
     {
+        $this->middleware(CheckPermissions::class);
         $props = CategoryProperty::whereCategory($categoryId)->delete();
         Categories::find($categoryId)->delete();
-        return redirect(route('categories.index'));
+        return redirect(route('admin.categories'));
     }
     public function getProperties()
     {
@@ -143,4 +165,5 @@ class CategoriesController extends Controller
         $properties = CategoryProperty::whereCategory($categoryId)->get()->toArray();
         return response()->json($properties);
     }
+
 }

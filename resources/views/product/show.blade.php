@@ -14,8 +14,15 @@
     </div>
     <div class="col-lg-4 col-md-4">
         <ul>
+            @if($product->isFavorite())
+            <li><a class="btn btn-success" href="{{ route('favorite.delete',['productId' => $product->id]) }}">Delete from favorite</a></li>
+            @else
             <li><a class="btn btn-success" href="{{ route('favorite.create',['productId' => $product->id]) }}">Add to favorite</a></li>
+            @endif @if($product->isCompared())
+            <li><a class="btn btn-success" href="{{ route('comparison.delete',['productId' => $product->id]) }}">Delete from compare</a></li>
+            @else
             <li><a class="btn btn-success" href="{{ route('comparison.create',['productId' => $product->id]) }}">Add to compare</a></li>
+            @endif
         </ul>
     </div>
 </div>
@@ -28,15 +35,13 @@
         </ul>
     </div>
 </div>
-@if (auth()->user()->hasPermission('admin') ||auth()->user()->hasPermission('manager'))
 <div class="row">
     @foreach($product->media() as $media)
     <div class="col-lg-4 col-md-4">
-        <img class="product-media" src="{{ $media->path }}" alt="">
+        <img class="product-media" src="{{ $media->path }}" alt=""> @guest @elseif (auth()->user()->hasPermission('admin'))
         <a class="btn btn-success" href="{{ route('media.setMain', ['mediaId' => $media->id]) }}" class="">Main</a>
-        <a class="btn btn-danger" href="{{ route('media.delete', ['mediaId' => $media->id]) }}">delete</a>
+        <a class="btn btn-danger" href="{{ route('media.delete', ['mediaId' => $media->id]) }}">Delete</a> @endGuest
     </div>
     @endforeach
 </div>
-@endif
 @endsection
