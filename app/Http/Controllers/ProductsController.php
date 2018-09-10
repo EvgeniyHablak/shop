@@ -9,19 +9,27 @@ use App\Categories;
 use App\CategoryProperty;
 use App\ProductProperty;
 use App\SearchFields;
+use App\ProductPreview;
+use Illuminate\Filesystem\Filesystem;
+use App\Media;
+use App\ProductMedia;
 
 class ProductsController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(CheckPermissions::class)->except('show');
+    }
     /**
-     * Undocumented function
+     * Show all products to admin
      *
      * @return void
      */
     public function index()
     {
-        $this->middleware(CheckPermissions::class);
-        $products = Products::all();
-        return view('admin.products', ['products' => $products, 'title' => 'Products']);
+        $products = Products::active()->get();
+        $deletedProducts = Products::whereDeleted()->get();
+        return view('admin.products', ['products' => $products, 'title' => 'Products', 'deletedProducts' => $deletedProducts]);
     }
 
     /**
@@ -54,46 +62,31 @@ class ProductsController extends Controller
             'description' => $request->input('description')
         ]);
         $product->save();
-
-        foreach ($categoryProperties as $value) {
-            if ($request->has($value->name)) {
-                $productProperty = new ProductProperty([
-                    'product_id' => $product->id,
-                    'name' => $value->name,
-                    'title' => $value->title,
-                    'value' => $request->input($value->name)
-                ]);
-                $productProperty->save();
-            }
+        foreach ($request->input('properties') as $propertyParam) {
+            $productProperty = new ProductProperty([
+                'product_id' => $product->id,
+                'name' => $propertyParam['name'],
+                'title' => $propertyParam['title'],
+                'value' => $propertyParam['value']
+            ]);
+            $productProperty->save();
         }
-        if ($request->has('propertyName')) {
-            for ($i = 0; $i < count($request->post('propertyName')); $i++) {
-                $name = $request->post('propertyName')[$i];
-                $title = $request->post('propertyTitle')[$i];
-                $value = $request->post('propertyValue')[$i];
-
-                $productProperty = new ProductProperty([
-                    'product_id' => $product->id,
-                    'name' => $name,
-                    'title' => $title,
-                    'value' => $value
-                ]);
-                $productProperty->save();
-            }
-        }
-        foreach ($request->inSearch as $name => $value) {
+        foreach ($request->inSearch as $name) {
             $searchFields = new SearchFields();
             $searchFields->product_id = $product->id;
             $searchFields->field = $name;
             if ($request->$name !== null) {
                 $value = $request->$name;
             } else {
-                $value = ProductProperty::first()->where('name', $name)->where('product_id', $product->id)->first()->value;
+                $value = ProductProperty::where('name', $name)->where('product_id', $product->id)->first()->value;
             }
             $searchFields->value = $value;
             $searchFields->save();
         }
-        return redirect(route('admin.products'));
+        return response()->json([
+            'success' => true,
+            'redirectUrl' => route('admin.products')
+        ]);
     }
 
     /**
@@ -136,47 +129,41 @@ class ProductsController extends Controller
         $product->title = $request->post('title');
         $product->save();
 
-        if ($request->has('existedProperties')) {
-            foreach ($request->post('existedProperties') as $name => $value) {
-                // dd($request->post('existedProperties'));
-                $property = ProductProperty::where('name', $name)->where('product_id', $product->id)->first();
-                $property->value = $value;
+        foreach ($request->input('properties') as $propertyParam) {
+            $property = ProductProperty::where('name', $propertyParam['name'])->where('product_id', $product->id);
+            if ($property->exists()) {
+                $property = $property->first();
+                $property->value = $propertyParam['value'];
                 $property->save();
-            }
-        }
-
-        if ($request->has('propertyName')) {
-            for ($i = 0; $i < count($request->post('propertyName')); $i++) {
-                $name = $request->post('propertyName')[$i];
-                $title = $request->post('propertyTitle')[$i];
-                $value = $request->post('propertyValue')[$i];
-
+            } else {
                 $productProperty = new ProductProperty([
                     'product_id' => $product->id,
-                    'name' => $name,
-                    'title' => $title,
-                    'value' => $value
+                    'name' => $propertyParam['name'],
+                    'title' => $propertyParam['title'],
+                    'value' => $propertyParam['value']
                 ]);
                 $productProperty->save();
             }
         }
-
         if ($request->has('inSearch')) {
             $fields = SearchFields::where('product_id', $product->id)->delete();
-            foreach ($request->inSearch as $name => $value) {
+            foreach ($request->inSearch as $name) {
                 $searchFields = new SearchFields();
                 $searchFields->product_id = $product->id;
                 $searchFields->field = $name;
                 if ($request->$name !== null) {
                     $value = $request->$name;
                 } else {
-                    $value = ProductProperty::first()->where('name', $name)->where('product_id', $product->id)->first()->value;
+                    $value = ProductProperty::where('name', $name)->where('product_id', $product->id)->first()->value;
                 }
                 $searchFields->value = $value;
                 $searchFields->save();
             }
         }
-        return redirect(route('admin.products'));
+        return response()->json([
+            'success' => true,
+            'redirectUrl' => route('admin.products')
+        ]);
     }
 
     /**
@@ -191,5 +178,54 @@ class ProductsController extends Controller
         $product->deleted_at = date('Y-m-d H:i:s');
         $product->save();
         return redirect(route('admin.products'));
+    }
+    /**
+     * Complete destroying product
+     *
+     * @param int $productId
+     * @return void
+     */
+    public function destroyComplete($productId)
+    {
+        $product = Products::find($productId);
+        $product->delete();
+        return redirect(route('admin.products'));
+    }
+    /**
+     * Set param `deleted_at` to null. Activate product
+     *
+     * @param [type] $productId
+     * @return void
+     */
+    public function activate($productId)
+    {
+        $product = Products::find($productId);
+        $product->deleted_at = null;
+        $product->save();
+        return redirect(route('admin.products'));
+    }
+    public function uploadImage(Request $request, $productId)
+    {
+        $uploadImage = $request->productImage;
+        $fullPath = '/img' . '/' . $uploadImage->getClientOriginalName();
+        $uploadImage->move('img', $uploadImage->getClientOriginalName());
+
+        $media = new Media([
+            'path' => $fullPath,
+        ]);
+        $media->save();
+        $productMedia = new ProductMedia([
+            'product_id' => $productId,
+            'media_id' => $media->id,
+            'type' => 'simple'
+        ]);
+        $productMedia->save();
+
+        return response()->json([
+            'success' => true,
+            'url' => $fullPath,
+            'deleteUrl' => route('media.delete', ['mediaId' => $media->id]),
+            'setMainUrl' => route('media.setMain', ['mediaId' => $media->id])
+        ]);
     }
 }

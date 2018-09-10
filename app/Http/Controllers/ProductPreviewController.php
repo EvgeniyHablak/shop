@@ -4,9 +4,19 @@ namespace App\Http\Controllers;
 
 use App\ProductPreview;
 use Illuminate\Http\Request;
+use App\Products;
+use App\Http\Middleware\CheckPermissions;
 
 class ProductPreviewController extends Controller
 {
+    /**
+     * Constructor
+     */
+    public function __construct()
+    {
+        $this->middleware(CheckPermissions::class);
+    }
+
     /**
      * Display a listing of the resource.
      *
@@ -41,12 +51,13 @@ class ProductPreviewController extends Controller
     /**
      * Display the specified resource.
      *
-     * @param  \App\ProductPreview  $productPreview
+     * @param $productPreview
      * @return \Illuminate\Http\Response
      */
-    public function show(ProductPreview $productPreview)
+    public function show($productPreview)
     {
-        //
+        $product = Products::find($productPreview);
+        return view('product.preview', ['product' => $product, 'title' => $product->name]);
     }
 
     /**
@@ -80,6 +91,8 @@ class ProductPreviewController extends Controller
      */
     public function destroy(ProductPreview $productPreview)
     {
-        //
+        $productId = $request->productId;
+        ProductPreview::find($productId)->delete();
+        redirect(route('admin.products'));
     }
 }

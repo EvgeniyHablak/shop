@@ -24,11 +24,41 @@
                 <input type="hidden" name="_method" value="delete">
                 <input type="submit" class="btn btn-default" value="delete"> {{ csrf_field() }}
             </form>
-
         </td>
 
     </tr>
     @endforeach
-
 </table>
+@if($deletedProducts->count())
+<div class="text-center">
+    <h3 class="">Deleted</h3>
+    <table class="table">
+        <tr>
+            <td>#</td>
+            <td>Name</td>
+            <td>Price</td>
+            <td>Category</td>
+            <td>Actions</td>
+        </tr>
+
+        @foreach($deletedProducts as $product)
+        <tr>
+            <td>{{$product->id}}</td>
+            <td>{{ $product->name }}</td>
+            <td>${{ $product->price }}</td>
+            <td>{{ $product->category()->title }}</td>
+            <td>
+                <a class="btn btn-primary" href="{{ route('product.activate', ['product' => $product->id]) }}">
+                        back to active
+                </a>
+                <form class="remove-product" action="{{ route('products.destroyComplete', ['product'=> $product->id]) }}" method="POST">
+                    <input type="hidden" name="_method" value="delete">
+                    <input type="submit" class="btn btn-default" value="delete"> {{ csrf_field() }}
+                </form>
+            </td>
+        </tr>
+        @endforeach
+    </table>
+</div>
+@endif
 @endsection

@@ -15,10 +15,15 @@ Route::resources(
     [
         '/categories' => 'CategoriesController',
         '/products' => 'ProductsController',
-        '/users' => 'UserController'
+        '/users' => 'UserController',
+        '/preview' => 'ProductPreviewController',
     ]
 );
-// Route::get('/categories/{categoryId}/delete', 'CategoriesController@delete')->name('categories.delete');
+Route::post('/products/{product}/upload', 'ProductsController@uploadImage')->name('product.upload');
+
+Route::get('/products/{product}/activate', 'ProductsController@activate')->name('product.activate');
+Route::delete('/products/{product}/complete', 'ProductsController@destroyComplete')->name('products.destroyComplete');
+
 Route::post('/categories/properties', 'CategoriesController@getProperties')->name('categories.properties');
 
 //MEDIA

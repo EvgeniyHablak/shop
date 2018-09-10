@@ -33,6 +33,7 @@ class ComparisonController extends Controller
             }
         } else {
             $products = Auth::user()->getProductsInComparison();
+            $productsId = [];
             foreach ($products as $product) {
                 $productsId[] = $product->id;
             }

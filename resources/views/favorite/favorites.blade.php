@@ -1,9 +1,9 @@
 @extends('layout') 
 @section('title', $title) 
 @section('content')
-
 <div class="col-lg-9 col-md-9">
     <div class="row">
+        <h2>Favirotes</h2>
         @foreach ($favorites as $product)
         <div class="col-sm-6 col-md-4">
             <div class="thumbnail" style="height:500px">

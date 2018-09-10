@@ -104,6 +104,8 @@
     </div>
 
     <!-- Latest compiled and minified JavaScript -->
+    <script src="/libs/underscore/underscore.js"></script>
+    <script src="/js/tmpl/templates.js"></script>
     <script src="/js/main.js"></script>
 </body>
 

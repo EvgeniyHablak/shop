@@ -15,9 +15,11 @@ class CheckPermissions
      */
     public function handle($request, Closure $next)
     {
-        if ($request->user()->hasPermission('admin') || $request->user()->hasPermission('manager')) {
-            return $next($request);
+        if ($request->user()) {
+            if ($request->user()->hasPermission('admin') || $request->user()->hasPermission('manager')) {
+                return $next($request);
+            }
         }
-        return redirect()->back();
+        return redirect(route('login'));
     }
 }

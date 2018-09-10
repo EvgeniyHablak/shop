@@ -40,6 +40,26 @@ class Products extends Model
     {
         return $query->where('category_id', $categoryId);
     }
+    /**
+     * Scope for products that marked as deleted
+     *
+     * @param [type] $query
+     * @return void
+     */
+    public function scopeWhereDeleted($query)
+    {
+        return $query->where('deleted_at', '!=', null);
+    }
+    /**
+     * Scope for products that dont marked as deleted
+     *
+     * @param [type] $query
+     * @return void
+     */
+    public function scopeActive($query)
+    {
+        return $query->where('deleted_at', null);
+    }
 
     /**
      * Undocumented function
@@ -104,7 +124,7 @@ class Products extends Model
 
     public function media()
     {
-        return DB::table('media')->addSelect(DB::raw('media.*'))
+        return Media::addSelect(DB::raw('media.*'))
             ->leftJoin('product_media', 'media.id', '=', 'product_media.media_id')
             ->where('product_id', $this->id)
             ->get();

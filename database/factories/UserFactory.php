@@ -52,13 +52,13 @@ $factory->define(ProductProperty::class, function (Faker $faker) {
 
 $factory->define(Media::class, function (Faker $faker) {
     return [
-        'path' => $faker->imageUrl()
+        'path' => '/img/offline.png'
     ];
 });
 
 $factory->define(ProductMedia::class, function (Faker $faker) {
     return [
-        'product_id' => rand(1, 50),
+        'product_id' => rand(1, 15),
         'media_id' => $faker->unique()->numberBetween(1, 200),
         'type' => 'simple'
     ];
