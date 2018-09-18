@@ -98,9 +98,8 @@
 
             <!-- /.container-fluid -->
         </nav>
-        @if(session()->has('alertMessage'))
-        <div class="alert alert-danger">{{ session('alertMessage') }}</div>
-        @endif @yield('content')
+    @include('includes.alert')
+    @include('includes.errors') @yield('content')
     </div>
 
     <!-- Latest compiled and minified JavaScript -->

@@ -11,14 +11,6 @@
         <a href="{{ route('categories.show', ['category' => $category->name]) }}">
             {{ $category->title }}
         </a>
-        {{-- @if(auth()->user()->hasPermission('admin') || auth()->user()->hasPermission('manager'))
-        <a href="{{ route('categories.edit', ['categoryId' => $category->id]) }}">
-            Edit
-        </a>
-        <a href="{{ route('categories.delete', ['categoryId' => $category->id]) }}">
-                Delete
-            </a>
-        @endif --}}
     </span> @endforeach
 </div>
 @endsection

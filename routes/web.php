@@ -16,7 +16,6 @@ Route::resources(
         '/categories' => 'CategoriesController',
         '/products' => 'ProductsController',
         '/users' => 'UserController',
-        '/preview' => 'ProductPreviewController',
     ]
 );
 Route::post('/products/{product}/upload', 'ProductsController@uploadImage')->name('product.upload');
@@ -43,11 +42,12 @@ Route::get('comparison/{productId}/delete', 'ComparisonController@delete')->name
 
 //ADMIN
 Route::get('/admin/users', 'UserController@index')->name('admin.users');
-Route::delete('/admin/users/{userId}/favorite/{productId}', 'FavoriteController@adminFavoritesDestroy')->name('admin.favorites.remove');
+Route::delete('/admin/users/{userId}/favorite/{productId}', 'FavoriteController@adminDestroy')->name('admin.favorites.remove');
 Route::get('/admin/products', 'ProductsController@index')->name('admin.products');
 Route::get('/admin/products/{productId}/edit', 'ProductsController@edit')->name('admin.products.edit');
 
 Route::get('/admin/categories', 'CategoriesController@adminCategories')->name('admin.categories');
+Route::get('/admin/{category}/show', 'CategoriesController@adminShow')->name('admin.categories.show');
 // Route::get('/admin/products/{productId}/delete', 'ProductsController@delete')->name('admin.products.delete');
 
 

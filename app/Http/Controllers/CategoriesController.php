@@ -7,9 +7,25 @@ use App\Categories;
 use App\Products;
 use Illuminate\Support\Facades\DB;
 use App\CategoryProperty;
+use App\Http\Middleware\AdminPermission;
+use App\Http\Middleware\CheckPermissions;
+use Illuminate\Support\Facades\Validator;
 
 class CategoriesController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware(AdminPermission::class)->only([
+            'create',
+            'store',
+            'edit',
+            'update',
+            'destroy'
+        ]);
+        $this->middleware(CheckPermissions::class)->only([
+            'adminCategories'
+        ]);
+    }
     /**
      * Display a listing of the resource.
      *
@@ -36,7 +52,7 @@ class CategoriesController extends Controller
      */
     public function create()
     {
-        return view('category.createForm', [
+        return view('admin.categoryCreateForm', [
             'title' => 'Create category'
         ]);
     }
@@ -49,6 +65,20 @@ class CategoriesController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'title' => 'required',
+            'name' => 'required'
+        ]);
+
+        // $validationRules = [];
+        // if ($request->has('propertyName')) {
+        //     $validationRules['propertyName.*'] = 'required';
+        //     $validationRules['propertyValue.*'] = 'required';
+        // }
+        // $validator = Validator::make($request->all(), $validationRules);
+        // if ($validator->fails()) {
+        //     dd($validator);
+        // }
         $title = htmlspecialchars($request->post('title'));
         $name = htmlspecialchars($request->post('name'));
         $category = new Categories([
@@ -96,6 +126,11 @@ class CategoriesController extends Controller
         }
         return view('category.category', ['category' => $category, 'products' => $products, 'title' => $category->title]);
     }
+    public function adminShow($categoryId)
+    {
+        $category = Categories::find($categoryId);
+        return view('admin.categoryShow', ['category' => $category, 'title' => $category->title]);
+    }
 
     /**
      * Show the form for editing the specified resource.
@@ -105,7 +140,6 @@ class CategoriesController extends Controller
      */
     public function edit($id)
     {
-        $this->middleware(CheckPermissions::class);
         $category = Categories::find($id);
         $categoryProperties = CategoryProperty::whereCategory($id)->get();
 
@@ -125,8 +159,6 @@ class CategoriesController extends Controller
      */
     public function update(Request $request, $categoryId)
     {
-        $this->middleware(CheckPermissions::class);
-
         $category = Categories::find($categoryId);
         $category->title = htmlspecialchars($request->post('title'));
         $category->name = htmlspecialchars($request->post('name'));
@@ -154,7 +186,6 @@ class CategoriesController extends Controller
      */
     public function destroy($categoryId)
     {
-        $this->middleware(CheckPermissions::class);
         $props = CategoryProperty::whereCategory($categoryId)->delete();
         Categories::find($categoryId)->delete();
         return redirect(route('admin.categories'));
