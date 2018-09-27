@@ -107,13 +107,13 @@
             <div class="form-group">
                 <label for="product-description">Description</label>
                 <div class="pull-right search-participating-block">
-                    <input type="checkbox" name="description" id="description-participating">
+                    <input @if($product->isInSearch('description')) checked @else value="off" @endif type="checkbox" name="description"
+                    id="description-participating">
                     <label for="description-participating">Participates in the search?</label>
                 </div>
                 <textarea autocomplete="off" id="product-description" name="description" rows="5" type="number" name="price" class="form-control"
                     placeholder="Enter price">{{ $product->description }}</textarea>
             </div>
-            {{-- {{ csrf_field() }} --}}
             <input type="submit" name="submitButton" value="Save" class="btn btn-primary edit-product-btn">
         </form>
 

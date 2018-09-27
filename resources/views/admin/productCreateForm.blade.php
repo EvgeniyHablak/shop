@@ -41,9 +41,6 @@
         </div>
         <!-- End Modal -->
 
-
-
-
         <form method="POST" action="{{ route('products.store') }}" id="new-product-form">
             <div class="form-group">
                 <label>Category</label>

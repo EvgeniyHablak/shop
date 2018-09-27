@@ -51,6 +51,16 @@ class ProductsController extends Controller
      */
     public function store(Request $request)
     {
+        $request->validate([
+            'name' => 'required',
+            'title' => 'required',
+            'price' => 'required',
+            'category_id' => 'required',
+            'description' => 'required',
+            'properties.*.name' => 'required',
+            'properties.*.title' => 'required',
+            'properties.*.value' => 'required'
+        ]);
         $categoryId = $request->input('category');
         $categoryProperties = CategoryProperty::whereCategory($categoryId)->get();
 
@@ -122,6 +132,14 @@ class ProductsController extends Controller
      */
     public function update(Request $request, $productId)
     {
+        $request->validate([
+            'name' => 'required',
+            'title' => 'required',
+            'price' => 'required',
+            'description' => 'required',
+            'properties.*.name' => 'required',
+            'properties.*.value' => 'required'
+        ]);
         $product = Products::find($productId);
         $product->name = $request->post('name');
         $product->price = $request->post('price');

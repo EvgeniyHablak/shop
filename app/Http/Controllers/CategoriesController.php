@@ -67,18 +67,10 @@ class CategoriesController extends Controller
     {
         $request->validate([
             'title' => 'required',
-            'name' => 'required'
+            'name' => 'required',
+            'propertyName.*' => 'required',
+            'propertyTitle.*' => 'required'
         ]);
-
-        // $validationRules = [];
-        // if ($request->has('propertyName')) {
-        //     $validationRules['propertyName.*'] = 'required';
-        //     $validationRules['propertyValue.*'] = 'required';
-        // }
-        // $validator = Validator::make($request->all(), $validationRules);
-        // if ($validator->fails()) {
-        //     dd($validator);
-        // }
         $title = htmlspecialchars($request->post('title'));
         $name = htmlspecialchars($request->post('name'));
         $category = new Categories([
@@ -159,6 +151,12 @@ class CategoriesController extends Controller
      */
     public function update(Request $request, $categoryId)
     {
+        $request->validate([
+            'title' => 'required',
+            'name' => 'required',
+            'propertyName.*' => 'required',
+            'propertyTitle.*' => 'required'
+        ]);
         $category = Categories::find($categoryId);
         $category->title = htmlspecialchars($request->post('title'));
         $category->name = htmlspecialchars($request->post('name'));

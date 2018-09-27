@@ -160,6 +160,10 @@ class Products extends Model
     }
     public function getPropertyValue(string $property)
     {
-        return ProductProperty::where('name', $property)->where('product_id', $this->id)->first()->value;
+        if (!ProductProperty::where('name', $property)->where('product_id', $this->id)->exists()) {
+            return 'empty value';
+        } else {
+            return ProductProperty::where('name', $property)->where('product_id', $this->id)->first()->value;
+        }
     }
 }
